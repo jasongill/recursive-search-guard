@@ -1,0 +1,31 @@
+name: test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.9"
+          - os: ubuntu-latest
+            python: "3.13"
+          # setup-python has no darwin-arm64 builds for 3.9. Run pytest on a
+          # modern Python and point HOOK_PYTHON at the runner's stock
+          # /usr/bin/python3 (Xcode CLT) -- the interpreter macOS end users
+          # actually have.
+          - os: macos-latest
+            python: "3.13"
+            hook_python: /usr/bin/python3
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install pytest
+      - run: python -m pytest
+        env:
+          HOOK_PYTHON: ${{ matrix.hook_python || '' }}

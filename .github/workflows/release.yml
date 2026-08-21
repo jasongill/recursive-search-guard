@@ -1,0 +1,41 @@
+name: release
+
+# Keep the version recorded in plugin.json / marketplace.json / pyproject.toml
+# in sync with GitHub releases: publishing a release tagged vX.Y.Z (or X.Y.Z)
+# commits the version to the default branch. Plugin installs track the default
+# branch, so that commit is what users see; the tag itself keeps the previous
+# version, which is cosmetic. Note: commits made with GITHUB_TOKEN do not
+# re-trigger CI workflows.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  sync-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Sync version from release tag
+        run: |
+          tag="${{ github.event.release.tag_name }}"
+          version="${tag#v}"
+          if ! echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Tag '$tag' is not a vX.Y.Z version tag; nothing to sync."
+            exit 0
+          fi
+          python3 scripts/set_version.py "$version"
+          if git diff --quiet; then
+            echo "Versions already at $version; nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .claude-plugin/plugin.json .claude-plugin/marketplace.json pyproject.toml
+          git commit -m "Sync version to $version for release $tag"
+          git push origin HEAD:${{ github.event.repository.default_branch }}

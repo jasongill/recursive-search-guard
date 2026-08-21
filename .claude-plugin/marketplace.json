@@ -1,0 +1,19 @@
+{
+  "name": "recursive-search-guard",
+  "description": "Marketplace for the recursive-search-guard Claude Code plugin: a PreToolUse guard against accidental recursive filesystem scans outside the current project.",
+  "owner": {
+    "name": "Jason Gill",
+    "email": "jasongill@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "recursive-search-guard",
+      "source": "./",
+      "description": "PreToolUse guard that blocks accidental recursive filesystem scans (find, rg, recursive grep, fd, du, tree, ...) outside the current project.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Jason Gill"
+      }
+    }
+  ]
+}
