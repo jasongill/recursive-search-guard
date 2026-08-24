@@ -1,6 +1,6 @@
 [project]
 name = "recursive-search-guard"
-version = "1.0.0"
+version = "1.0.1"
 description = "Development environment for the recursive-search-guard Claude Code plugin"
 requires-python = ">=3.9"
 

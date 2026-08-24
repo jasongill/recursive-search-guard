@@ -10,7 +10,7 @@
       "name": "recursive-search-guard",
       "source": "./",
       "description": "PreToolUse guard that blocks accidental recursive filesystem scans (find, rg, recursive grep, fd, du, tree, ...) outside the current project.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "Jason Gill"
       }
