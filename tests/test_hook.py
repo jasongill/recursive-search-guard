@@ -37,12 +37,15 @@ def sandbox(tmp_path_factory):
     (outside / "docs").mkdir(parents=True)
     outside_file = outside / "notes.txt"
     outside_file.write_text("hello\n")
+    (home / ".claude" / "plugins").mkdir(parents=True)
+    (outside / ".claude").mkdir()
     return {
         "home": str(home),
         "proj": str(proj),
         "proj_app": str(proj / "app"),
         "outside": str(outside),
         "outside_file": str(outside_file),
+        "home_claude": str(home / ".claude"),
     }
 
 
@@ -111,6 +114,13 @@ BASH_CASES = [
     ("ls-R-inside", "ls -R .", "allow", True),
     ("eza-non-tree", "eza -la {outside}", "allow", True),
     ("nonexistent-fails-fast", "find /nonexistent-zzz-123", "allow", True),
+    # --- .claude directories hold Claude Code's own bounded state: allowed ---
+    ("find-home-claude", "find ~/.claude", "allow", True),
+    ("rg-home-claude-subdir", "rg TODO ~/.claude/plugins", "allow", True),
+    ("rg-home-claude-glob", "rg TODO ~/.claude/*", "allow", True),
+    ("du-other-claude-dir", "du -sh {outside}/.claude", "allow", True),
+    ("cd-claude-then-find", "cd ~/.claude && find .", "allow", True),
+    ("find-claude-dotdot-escape", "find ~/.claude/..", "deny", True),
     ("single-quoted-sub-inert", "echo 'find / is slow'", "allow", True),
     ("subshell-cwd-restored", "(cd / && pwd); find .", "allow", True),
     ("or-does-not-track-cwd", "cd {outside} || find .", "allow", True),
@@ -125,7 +135,9 @@ NATIVE_CASES = [
     ("grep-dir-outside", "Grep", "outside", "deny"),
     ("grep-single-outside-file", "Grep", "outside_file", "allow"),
     ("grep-inside-project", "Grep", "proj_app", "allow"),
+    ("grep-home-claude", "Grep", "home_claude", "allow"),
     ("glob-outside", "Glob", "outside", "deny"),
+    ("glob-home-claude", "Glob", "home_claude", "allow"),
     ("glob-default-path", "Glob", None, "allow"),
     ("glob-project-root", "Glob", "proj", "allow"),
 ]

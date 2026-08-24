@@ -20,10 +20,12 @@ compound commands (`cd / && find .`), shell `-c` / eval payloads, and
 
 Path policy: the project root is ${CLAUDE_PROJECT_DIR}, falling back to
 the hook payload's cwd. Candidate paths are variable-expanded,
-glob-prefixed, and resolved through symlinks before comparison. A single
-existing file outside the project is allowed (no directory walk); an
-existing directory outside is denied; a nonexistent literal path fails
-fast on its own and is left alone.
+glob-prefixed, and resolved through symlinks before comparison. Paths
+inside a .claude directory (such as ~/.claude/) are allowed: they hold
+Claude Code's own bounded config and state. A single existing file
+outside the project is allowed (no directory walk); an existing
+directory outside is denied; a nonexistent literal path fails fast on
+its own and is left alone.
 
 On a blocked operation the hook exits 0 and prints PreToolUse JSON with
 permissionDecision "deny", so Claude Code cancels the call and the model
@@ -146,6 +148,11 @@ def is_within(path: str, root: str) -> bool:
         return False
 
 
+def within_claude_dir(path: str) -> bool:
+    """True when path is a .claude directory or lives inside one."""
+    return ".claude" in path.split(os.sep)
+
+
 def expand_known_vars(value: str, cwd: str, repo: str, home: str) -> str:
     """Expand the path variables agents commonly emit in Bash commands."""
     replacements = {
@@ -218,6 +225,12 @@ def outside_recursive_root(
     if not resolved:
         return None
     if is_within(resolved, repo):
+        return None
+
+    # .claude directories (~/.claude, other projects' .claude/) hold Claude
+    # Code's own bounded config and state, so scanning them is cheap and
+    # usually intentional.
+    if within_claude_dir(resolved):
         return None
 
     # A direct read/search of one known file is not a recursive traversal.

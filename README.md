@@ -61,6 +61,7 @@ grep -R TODO src/
 du -sh ./tmp
 rg TODO /etc/hosts     # single existing file; no directory walk
 ls -la /               # not recursive
+find ~/.claude         # .claude dirs hold Claude Code's own config/state
 ```
 
 Denied (recursive walk outside the project):
@@ -77,7 +78,9 @@ tree /Users
 ```
 
 Existing individual files outside the project are allowed because they
-do not cause a recursive traversal. Denials fail the tool call with a
+do not cause a recursive traversal. Searches rooted inside a `.claude`
+directory (`~/.claude/`, another project's `.claude/`) are allowed too:
+those directories hold Claude Code's own bounded config and state. Denials fail the tool call with a
 structured `permissionDecision: "deny"` and an explanatory reason; on
 anything the parser cannot understand, the hook **fails open** and
 leaves normal permission handling unchanged.
